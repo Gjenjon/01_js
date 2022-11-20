@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<script src="js/jquery-2.1.3.min.js"></script>
+<link rel="stylesheet" href="css/sample.css">
+<title>じゃんけん</title>
+</head>
+<body>
+
+<header>
+  <h1>じゃんけん</h1>
+</header>
+
+
+<main>
+  <ul>
+    <li id="gu_btn", onclick="buttonClick(1)" , value=10>グー</li>
+    <li id="cho_btn", onclick="buttonClick(2)", value=20>チョキ</li>
+    <li id="par_btn", onclick="buttonClick(3)", value=30>パー</li>
+  </ul>
+  <div>コンピュータの手の出し方を確認 ↓</div>
+  <ul>
+    <li id="check", onclick="button()", >確認</li>
+  </ul>
+
+  <div><span id="pc_performance"></span></div>
+  <div>コンピュータの出した手は？「<span id="pc_hands">なに？</span>」</div>
+  <div id="judgment">結果</div>
+</main>
+
+<footer></footer>
+<script>
+//じゃんけん用のSCRIPTを書いてください
+
+//ゲーム設定
+const NUM_JANKEN_ELEMENT = 3; //ジャンケンの手数
+const JANKEN_LABEL = {
+    1 : "グー",
+    2 : "チョキ",
+    3 : "パー"
+  };
+const RESULT_TABLE = {
+    // プレイヤーの手： 10（グー）、20（チョキ）、30（パー）
+    //引き分け
+    11 : "引き分け",
+    22 : "引き分け",
+    33 : "引き分け",
+
+    //PC勝利
+    21 : "PCの勝利",
+    32 : "PCの勝利",
+    13 : "PCの勝利",
+
+    //PC勝利
+    12 : "プレイヤーの勝利",
+    23 : "プレイヤーの勝利",
+    31 : "プレイヤーの勝利"
+    };
+
+// ボタンアクション
+// コンピュータの出し方を確認
+function button(){
+// (1) 手の選び方がランダムになっているか確認
+let testRes = testRandInt(numElement = NUM_JANKEN_ELEMENT);
+
+if(testRes["flag"] == 1){
+  // 規定された許容範囲を満たすランダム性が認められた場合
+  document.getElementById("pc_performance").textContent = testRes["performance"];
+
+}
+//else{
+  // 手の選び方に問題がある場合
+
+//};
+}
+
+// プレイヤーの手
+function buttonClick(numPlayer){
+  if(numPlayer === 1 || 2 || 3){
+    if(window.confirm(JANKEN_LABEL[numPlayer] + 'でよいですか？')){
+      //コンピュータの手
+      // (1) 手の選び方がランダムになっているか確認
+      let testRes = testRandInt(numElement = NUM_JANKEN_ELEMENT);
+
+      if(testRes["flag"] == 1){
+        // 規定された許容範囲を満たすランダム性が認められた場合
+        let numPc = intGenerator(NUM_JANKEN_ELEMENT);
+        // HTMLへの反映：コンピュータの出した手
+        document.getElementById("pc_hands").textContent = pcAction(numPc, JANKEN_LABEL);
+
+      // (2) 勝敗判定
+        let res = 10 * numPlayer + numPc;
+        console.log(res)
+        document.getElementById("judgment").textContent = RESULT_TABLE[res];
+        document.getElementById("judgment").style.backgroundColor = "#ff0000";
+
+      }
+      //else{
+        // 手の選び方に問題がある場合
+
+      //};
+  
+    }
+    else{
+      window.alert('キャンセルされました'); // 警告ダイアログを表示
+    }
+
+  };
+};
+
+
+//function 
+  // 0 - 2 integer generator 
+  function intGenerator(numElement){
+    // *********************************************************************
+    // numElement : number of actions 
+    // *********************************************************************
+
+    return Math.ceil(numElement * Math.random()) // from 1 to numElement
+  }
+
+  // ***** PC action *****
+  function pcAction(index, dicLabel){
+    // *********************************************************************
+    // index : number 
+    // dicLabel : Object 2D Array has Int corresponding to index and label. 
+    // return for error : 0
+    // *********************************************************************
+
+    // checking data type of argument  
+    if(typeof(index) == "number" && typeof(dicLabel) == "object"){
+      
+      // checking keys include index 
+      let keyLabel = Object.keys(dicLabel);
+      if(keyLabel.includes(String(index))){
+        // Normal 
+        return dicLabel[index];
+      }else{
+        // Error : index is not included in keys
+        return 0;
+      } 
+
+    }else{
+      // Error : error of wrong arguments(data type)
+      return 0;
+    };
+  }
+
+  // my funcitons
+    // Zero-filled array generator
+      function arr1dZeroFill(numElement){
+        // *********************************************************************
+        // numElement : length of 1D array 
+        // *********************************************************************
+        let arr =[];
+        for(i=0; i<numElement; i++){
+          arr[i] = 0;
+        }
+
+        return arr
+      } 
+
+//test
+  //randInt
+  function testRandInt(numElement = 3, numIter = 10000, accptLevel = 0.05){
+    // *********************************************************************
+    // test for generator of random nubers(1, 2, 3)
+    // numElement : number of option 
+    // numIter    : nuber of iteration to generate random number for test
+    // accptLevel : acceptance level for the difference in frequency of random nuber generator 
+    // *********************************************************************
+
+    let arrCounter = arr1dZeroFill(numElement); // generate 1D array filled with 0 : [for 1, for 2, for 3]
+
+    // counting the nuber of selection(1, 2, 3) 
+    for(i = 0; i<numIter; i++){
+      let randCeilInt = intGenerator(numElement); //1, 2, 3 in output
+      arrCounter[randCeilInt - 1] += 1; //counter for 1, 2, 3
+    };
+
+    // checking if nubers except for 1,2,3 appear
+    let sumNumber = arrCounter.reduce(function(sum, value){return sum + value}, 0)
+    if(arrCounter.length == numElement && sumNumber == numIter){
+    
+      // checking reasonable frequency of elements
+      arrCounter = arrCounter.map(function(value){return value/numIter});
+      let flagOutOfRange = 1;
+
+      for(i=0; i<arrCounter.length; i++){
+        // check if number is within expected range 
+        if(1/numElement - accptLevel > arrCounter[i] || arrCounter[i] >  1/numElement + accptLevel){
+          flagOutOfRange = 0;
+        };
+      };
+
+      // 0 : Not reasonable generator 
+      // 1 : No issue detected 
+      return {
+        flag : flagOutOfRange,
+        performance : "グー、チョキ、パーを出す確率は(" + numIter + "回実行）：" + arrCounter.map(function(value){return Math.ceil(value * 100) + "%"})
+      }
+
+    };
+  }
+  
+ 
+</script>
+</body>
+</html>
